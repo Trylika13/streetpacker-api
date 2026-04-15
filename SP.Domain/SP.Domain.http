@@ -1,0 +1,6 @@
+@SP.Domain_HostAddress = http://localhost:5007
+
+GET {{SP.Domain_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,6 @@
+@SP.Presentation_HostAddress = http://localhost:5127
+
+GET {{SP.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
