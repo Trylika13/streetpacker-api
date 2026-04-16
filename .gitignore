@@ -488,5 +488,5 @@ appsettings.json
 appsettings.Development.json
 appsettings.Production.json
 
-bin/
-obj/
+**/[Bb]in/
+**/[Oo]bj/
