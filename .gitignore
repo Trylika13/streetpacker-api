@@ -1,0 +1,18 @@
+## Ignore les dossiers de compilation
+**/[Bb]in/
+**/[Oo]bj/
+
+## Ignore les fichiers de config perso de Rider/VS
+.idea/
+.vs/
+*.user
+*.userosscache
+*.sln.doccache
+
+## Ignore les fichiers de publish et les logs
+publish/
+*.log
+
+## Sécurité : on ignore les fichiers de secrets
+appsettings.Development.json
+appsettings.json
