@@ -2,10 +2,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; 
 using System.Text;
+using Microsoft.EntityFrameworkCore;
+using SP.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 1. Swagger AVEC le cadenas JWT (Syntaxe classique Swashbuckle)
 builder.Services.AddSwaggerGen(c =>
