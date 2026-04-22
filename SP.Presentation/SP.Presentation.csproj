@@ -16,7 +16,6 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.15" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.15" />
         <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.15" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.15" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
@@ -26,7 +25,6 @@
     <ItemGroup>
       <Folder Include="Controllers\" />
       <Folder Include="Dtos\" />
-      <Folder Include="Mappers\" />
     </ItemGroup>
 
     <ItemGroup>

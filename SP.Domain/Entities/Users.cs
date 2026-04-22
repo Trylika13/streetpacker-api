@@ -2,7 +2,7 @@ using System;
 
 namespace SP.Domain.Entities;
 
-public class Users
+public class User
 {
     public Guid UserId { get; set; }
     
@@ -12,5 +12,5 @@ public class Users
     
     public required string Email { get; set; }
     
-    public required string Role { get; set; }
+    public string? Role { get; set; }
 }
