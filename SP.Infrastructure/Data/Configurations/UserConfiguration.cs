@@ -4,9 +4,9 @@ using SP.Domain.Entities;
 
 namespace SP.Infrastructure.Data.Configurations;
 
-public class UsersConfiguration : IEntityTypeConfiguration<Users>
+public class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    public void Configure(EntityTypeBuilder<Users> builder)
+    public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("Users");
 
