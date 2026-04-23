@@ -44,17 +44,39 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(UserLoginDto dto)
     {
-        var token = await _userService.LoginAsync(dto.Username, dto.Password);
+        var result = await _userService.LoginAsync(dto.Username, dto.Password);
 
-        if (token == null)
+        if (result == null)
         {
             return Unauthorized(new { message = "Identifiants invalides." });
         }
 
-        return Ok(new
+        var response = new AuthResponseDto
         {
-            Token = token,
-            ExpiresIn = 15
+            AccessToken = result.Value.Token,
+            RefreshToken = result.Value.RefreshToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
+        };
+        return Ok(response);
+    }
+
+    #endregion
+    
+    #region Refresh
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(TokenRequestDto dto)
+    {
+        var result = await _userService.RefreshTokenAsync(dto.RefreshToken);
+
+        if (result == null)
+            return Unauthorized("Session expirée");
+
+        return Ok(new  AuthResponseDto 
+        {
+            AccessToken = result.Value.Token,
+            RefreshToken = result.Value.RefreshToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
         });
     }
 

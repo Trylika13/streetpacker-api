@@ -42,6 +42,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 // 1. Swagger AVEC le cadenas JWT (Syntaxe classique Swashbuckle)
 builder.Services.AddSwaggerGen(c =>
@@ -74,20 +75,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// // 2. Le moteur JWT
-// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//     .AddJwtBearer(options =>
-//     {
-//         options.TokenValidationParameters = new TokenValidationParameters
-//         {
-//             ValidateIssuer = true,
-//             ValidateAudience = false,
-//             ValidateLifetime = true,
-//             ValidateIssuerSigningKey = true,
-//             ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)) 
-//         };
-//     });
+
 
 var app = builder.Build();
 

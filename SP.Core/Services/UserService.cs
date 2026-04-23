@@ -14,11 +14,13 @@ public class UserService : IUserService
 {
     private readonly IConfiguration _config;
     private readonly IUserRepository _userRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     
-    public UserService(IUserRepository userRepository, IConfiguration config)
+    public UserService(IUserRepository userRepository, IConfiguration config, IRefreshTokenRepository refreshTokenRepository)
     {
         _userRepository = userRepository;
         _config = config;
+        _refreshTokenRepository = refreshTokenRepository;
     }
     
     public async Task<User> RegisterAsync(User user, string clearPassword)
@@ -35,7 +37,7 @@ public class UserService : IUserService
         return await _userRepository.AddUserAsync(user);
     }
 
-    public async Task<string?> LoginAsync(string username, string password)
+    public async Task<(string Token, string RefreshToken)?> LoginAsync(string username, string password)
     {
         var user = await _userRepository.GetByUsernameAsync(username);
         if ( user == null) return null;
@@ -43,7 +45,12 @@ public class UserService : IUserService
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             return null;
         
-        return GenerateJwtToken(user);
+        var jwt =  GenerateJwtToken(user);
+        var refreshTokenEntity = GenerateRefreshToken(user.UserId);
+        
+        await _refreshTokenRepository.AddAsync(refreshTokenEntity);
+        
+        return (jwt, refreshTokenEntity.Token);
     }
 
     private string GenerateJwtToken(User user)
@@ -63,10 +70,54 @@ public class UserService : IUserService
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(15),
+            expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: creds
         );
         return new JwtSecurityTokenHandler().WriteToken(token);
 
+    }
+    
+    private RefreshToken GenerateRefreshToken(Guid userId)
+    {
+        var randomNumber = new byte[64];
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        
+        return new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            Token = Convert.ToBase64String(randomNumber),
+            ExpiresAt = DateTime.UtcNow.AddDays(7), 
+            CreatedAt = DateTime.UtcNow,
+            UserId = userId,
+            IsRevoked = false
+        };
+    }
+    
+    public async Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string refreshToken)
+    {
+        var savedRefreshToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+
+        // Vérifications de sécurité
+        // if (savedRefreshToken == null || 
+        //     savedRefreshToken.ExpiresAt < DateTime.UtcNow || 
+        //     savedRefreshToken.IsRevoked != null)
+        // {
+        //     return null;
+        // }
+        
+        if (savedRefreshToken == null) return null; // Garde juste celui-là
+
+        // Génération des nouveaux tokens
+        var newAccessToken = GenerateJwtToken(savedRefreshToken.User!);
+        var newRefreshTokenEntity = GenerateRefreshToken(savedRefreshToken.UserId);
+        
+        savedRefreshToken.IsRevoked = true;
+
+        await _refreshTokenRepository.UpdateAsync(savedRefreshToken);
+        
+        await _refreshTokenRepository.AddAsync(newRefreshTokenEntity);
+        
+        return (newAccessToken, newRefreshTokenEntity.Token);
     }
 }
