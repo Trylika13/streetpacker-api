@@ -12,8 +12,8 @@ using SP.Infrastructure.Data;
 namespace SP.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260421083853_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260423114438_InitialFullSetup")]
+    partial class InitialFullSetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,41 @@ namespace SP.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("SP.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("revoked");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("refresh_tokens", (string)null);
+                });
 
             modelBuilder.Entity("SP.Domain.Entities.User", b =>
                 {
@@ -64,6 +99,22 @@ namespace SP.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("SP.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("SP.Domain.Entities.User", "User")
+                        .WithMany("RefreshToken")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SP.Domain.Entities.User", b =>
+                {
+                    b.Navigation("RefreshToken");
                 });
 #pragma warning restore 612, 618
         }
