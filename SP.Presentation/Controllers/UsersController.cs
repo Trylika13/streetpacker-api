@@ -39,5 +39,24 @@ public class UsersController : ControllerBase
 
     #endregion
 
-    
+    #region Login
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(UserLoginDto dto)
+    {
+        var token = await _userService.LoginAsync(dto.Username, dto.Password);
+
+        if (token == null)
+        {
+            return Unauthorized(new { message = "Identifiants invalides." });
+        }
+
+        return Ok(new
+        {
+            Token = token,
+            ExpiresIn = 15
+        });
+    }
+
+    #endregion
 }
