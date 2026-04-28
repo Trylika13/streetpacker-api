@@ -39,10 +39,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISpotService, SpotService>();
+
 
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<ISpotRepository, SpotRepository>();
 
 // 1. Swagger AVEC le cadenas JWT (Syntaxe classique Swashbuckle)
 builder.Services.AddSwaggerGen(c =>
