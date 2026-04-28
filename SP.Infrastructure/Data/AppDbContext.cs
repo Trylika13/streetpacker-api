@@ -9,7 +9,9 @@ public class AppDbContext : DbContext
     
     public DbSet<User> Users => Set<User>();
     
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    
+    public DbSet<Spot> Spots => Set<Spot>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
