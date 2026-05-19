@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using SP.Core.Interfaces.Services;
 using SP.Presentation.Dtos;
 using SP.Presentation.Mappers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SP.Presentation.Controllers;
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -16,7 +18,8 @@ public class UsersController : ControllerBase
     }
 
     #region Register
-
+    
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register(UserRegistrationDto dto)
     {
@@ -41,6 +44,7 @@ public class UsersController : ControllerBase
 
     #region Login
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(UserLoginDto dto)
     {
@@ -63,9 +67,9 @@ public class UsersController : ControllerBase
     #endregion
     
     #region Refresh
-
+    [AllowAnonymous]
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh(TokenRequestDto dto)
+    public async Task<IActionResult> Refresh([FromBody] TokenRequestDto dto)
     {
         var result = await _userService.RefreshTokenAsync(dto.RefreshToken);
 

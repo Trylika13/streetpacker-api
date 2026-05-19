@@ -97,18 +97,22 @@ public class UserService : IUserService
     public async Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string refreshToken)
     {
         var savedRefreshToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+    
+        if (savedRefreshToken == null) {
+            Console.WriteLine("❌ Token non trouvé en base !");
+            return null;
+        }
 
-        // Vérifications de sécurité
-        // if (savedRefreshToken == null || 
-        //     savedRefreshToken.ExpiresAt < DateTime.UtcNow || 
-        //     savedRefreshToken.IsRevoked != null)
-        // {
-        //     return null;
-        // }
+        if (savedRefreshToken.IsRevoked) {
+            Console.WriteLine("❌ Token déjà révoqué !");
+            return null;
+        }
+
+        if (savedRefreshToken.User == null) {
+            Console.WriteLine("❌ Utilisateur non chargé ! (Problème d'Include)");
+            return null;
+        }
         
-        if (savedRefreshToken == null) return null; // Garde juste celui-là
-
-        // Génération des nouveaux tokens
         var newAccessToken = GenerateJwtToken(savedRefreshToken.User!);
         var newRefreshTokenEntity = GenerateRefreshToken(savedRefreshToken.UserId);
         

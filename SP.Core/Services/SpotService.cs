@@ -18,6 +18,11 @@ public class SpotService : ISpotService
         return await _spotRepository.GetByIdAsync(id);
     }
 
+    public async Task<IEnumerable<Spot>> GetSpotsByUserIdAsync(Guid userId)
+    {
+        return await _spotRepository.GetByUserIdAsync(userId);
+    }
+
     public async Task<(bool Success, string Message, Spot? Spot)> CreateSpotAsync(Spot spot)
     {
         var userSpots = await _spotRepository.GetByUserIdAsync(spot.UserId);
