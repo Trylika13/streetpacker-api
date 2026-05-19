@@ -11,10 +11,10 @@ using SP.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenAnyIP(5127); 
-});
+// builder.WebHost.ConfigureKestrel(serverOptions =>
+// {
+//     serverOptions.ListenAnyIP(5127); 
+// });
 
 builder.Services.AddCors(options =>
 {
