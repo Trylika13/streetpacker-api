@@ -21,7 +21,6 @@ public class SpotsController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var spots = await _spotService.GetAllSpotsAsync();
@@ -95,5 +94,24 @@ public class SpotsController : ControllerBase
             return StatusCode(403, "C'est pas ton spot, pas touche la mouche t'as jamais pris ta douche");
         }
         return NoContent();
+    }
+
+    [HttpGet("my-spots")]
+    public async Task<IActionResult> GetMySpots()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Tu n'es pas connecté");
+        }
+
+        if (!Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return BadRequest("Format de l'ID utilisateur invalide dans le token.");
+        }
+        
+        var spots = await _spotService.GetSpotsByUserIdAsync(userId);
+        var dtos = spots.Select(SpotMapper.ToDto);
+        return Ok(dtos);
     }
 }
