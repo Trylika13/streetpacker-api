@@ -37,19 +37,5 @@ public static class SpotMapper
         };
     }
     
-    public static Spot ToUpdateEntity(UpdateSpotDto dto, Guid spotId)
-    {
-        return new Spot
-        {
-            Id = spotId, 
-            Title = dto.Title,
-            Description = dto.Description,
-            Latitude = dto.Latitude,
-            Longitude = dto.Longitude,
-            ImageUrl = dto.ImageUrl
-                       
-        };
-    }
-    
 }
 

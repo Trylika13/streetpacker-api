@@ -84,15 +84,26 @@ public class SpotsController : ControllerBase
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
         var userId = Guid.Parse(userIdClaim.Value);
-        
-        var spotToUpdate = SpotMapper.ToUpdateEntity(dto, id);
+    
+        // 1. On récupère le spot complet de la DB (avec sa lat/long d'origine)
+        var existingSpot = await _spotService.GetSpotByIdAsync(id);
+        if (existingSpot == null) return NotFound("Spot introuvable.");
 
-        var updated = await _spotService.UpdateSpotAsync(spotToUpdate, userId);
-
-        if (!updated)
+        // 2. Sécurité
+        if (existingSpot.UserId != userId)
         {
             return StatusCode(403, "C'est pas ton spot, pas touche la mouche t'as jamais pris ta douche");
         }
+
+        // 3. On change uniquement les champs textuels DIRECTEMENT, sans mappeur
+        existingSpot.Title = dto.Title;
+        existingSpot.Description = dto.Description;
+        existingSpot.ImageUrl = dto.ImageUrl;
+        existingSpot.LastVerifiedAt = DateTime.UtcNow;
+
+        // 4. Sauvegarde
+        await _spotService.UpdateSpotAsync(existingSpot);
+
         return NoContent();
     }
 

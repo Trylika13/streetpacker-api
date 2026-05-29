@@ -56,6 +56,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISpotService, SpotService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 
 // Repositories
@@ -107,7 +108,7 @@ if (app.Environment.IsDevelopment())
 {
   
 }
-// Pipi caca
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

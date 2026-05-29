@@ -10,6 +10,6 @@ public interface ISpotService
     
     Task<(bool Success, string Message, Spot? Spot)> CreateSpotAsync(Spot spot);
     
-    Task<bool> UpdateSpotAsync(Spot spot, Guid userId);
+    Task<bool> UpdateSpotAsync(Spot spot);
     Task<bool> DeleteSpotAsync(Guid id, Guid userId);
 }
