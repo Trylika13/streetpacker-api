@@ -40,36 +40,11 @@ public class SpotService : ISpotService
         return (true, "Spot créé avec succès!" , spot);
     }
 
-    public async Task<bool> UpdateSpotAsync(Spot updatedSpot,  Guid userId)
+    public async Task<bool> UpdateSpotAsync(Spot spot)
     {
-        var existingSpot = await _spotRepository.GetByIdAsync(updatedSpot.Id);
+        await _spotRepository.UpdateAsync(spot);
         
-        if (existingSpot == null)
-        {
-            Console.WriteLine($"[DEBUG] Spot {updatedSpot.Id} INTROUVABLE en base.");
-            return false;
-        }
-
-        Console.WriteLine($"[DEBUG] ID du Token : {userId}");
-        Console.WriteLine($"[DEBUG] ID du Proprio en base : {existingSpot.UserId}");
-
-        if (existingSpot.UserId != userId) 
-        {
-            Console.WriteLine("[DEBUG] MATCH ÉCHOUÉ : C'est pas le même User.");
-            return false;
-        }
-        
-        existingSpot.Title = updatedSpot.Title;
-        existingSpot.Description = updatedSpot.Description;
-        existingSpot.FreshnessScore = updatedSpot.FreshnessScore;
-        existingSpot.Latitude = updatedSpot.Latitude;
-        existingSpot.Longitude = updatedSpot.Longitude;
-        existingSpot.ImageUrl = updatedSpot.ImageUrl;
-        existingSpot.LastVerifiedAt = DateTime.UtcNow;
-        
-        await _spotRepository.UpdateAsync(existingSpot);
         return true;
-        
     }
 
     public async Task<bool> DeleteSpotAsync(Guid id, Guid userId)

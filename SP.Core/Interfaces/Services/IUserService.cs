@@ -4,9 +4,9 @@ using SP.Domain.Entities;
 
 public interface IUserService
 {
-    Task<User> RegisterAsync(User user, string clearPassword);
+    Task<User> DeleteUserAsync(Guid userId);
     
-    Task<(string Token, string RefreshToken)?> LoginAsync(string username, string password);
+    Task<User?> GetByIdAsync(Guid userId);
     
-    Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string refreshToken);
+    Task<User>  UpdateUserAsync(User user);
 }
