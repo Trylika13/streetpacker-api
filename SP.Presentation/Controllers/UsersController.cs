@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SP.Core.Interfaces.Services;
 using SP.Presentation.Dtos;
-using SP.Presentation.Mappers;
-using Microsoft.AspNetCore.Mvc;
 
 namespace SP.Presentation.Controllers;
-[Authorize]
+
+[Authorize] // Sécurité max pour tout le fichier
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -17,21 +17,44 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    #region Register
-    
-    [AllowAnonymous]
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(UserRegistrationDto dto)
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMyProfile()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim))
+            return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
+        
+        // ⚠️ Assure-toi d'avoir cette méthode GetByIdAsync ou GetUserByIdAsync dans ton IUserService / UserRepository
+        var user = await _userService.GetByIdAsync(userId); 
+        
+        if (user == null)
+            return NotFound();
+
+        return Ok(new 
+        { 
+            username = user.Username, 
+            email = user.Email 
+        });
+    }
+
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMyAccount()
     {
         try
         {
-            // Utilisation du mapper pour transformer le DTO en Entité 
-            var userEntity = dto.ToEntity();
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { message = "Utilisateur non identifié." });
 
-            //  On passe l'entité et le mot de passe en clair au service
-            var result = await _userService.RegisterAsync(userEntity, dto.Password);
+            var userId = Guid.Parse(userIdClaim); 
 
-            return Ok(result);
+            await _userService.DeleteUserAsync(userId);
+
+            return NoContent(); 
         }
         catch (Exception ex)
         {
@@ -39,50 +62,27 @@ public class UsersController : ControllerBase
         }
     }
     
-
-    #endregion
-
-    #region Login
-
-    [AllowAnonymous]
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(UserLoginDto dto)
+    [Authorize]
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateProfile(UpdateUserDto dto)
     {
-        var result = await _userService.LoginAsync(dto.Username, dto.Password);
+        // 1. Récupération de l'ID via le token
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        var userId = Guid.Parse(userIdClaim.Value);
 
-        if (result == null)
-        {
-            return Unauthorized(new { message = "Identifiants invalides." });
-        }
+        // 2. On chope le user en base
+        var existingUser = await _userService.GetByIdAsync(userId);
+        if (existingUser == null) return NotFound("Utilisateur introuvable.");
 
-        var response = new AuthResponseDto
-        {
-            AccessToken = result.Value.Token,
-            RefreshToken = result.Value.RefreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
-        };
-        return Ok(response);
+        // 3. On applique les modifs
+        existingUser.Username = dto.Username;
+        existingUser.Email = dto.Email;
+
+        // 4. On sauvegarde
+        await _userService.UpdateUserAsync(existingUser);
+
+        return Ok(new { message = "Profil mis à jour avec succès." });
     }
-
-    #endregion
     
-    #region Refresh
-    [AllowAnonymous]
-    [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] TokenRequestDto dto)
-    {
-        var result = await _userService.RefreshTokenAsync(dto.RefreshToken);
-
-        if (result == null)
-            return Unauthorized("Session expirée");
-
-        return Ok(new  AuthResponseDto 
-        {
-            AccessToken = result.Value.Token,
-            RefreshToken = result.Value.RefreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
-        });
-    }
-
-    #endregion
 }

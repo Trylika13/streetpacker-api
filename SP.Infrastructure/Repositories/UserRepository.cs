@@ -26,4 +26,22 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
         return user; 
     }
+    
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await _context.Users.FindAsync(id);
+    }
+
+    public async Task DeleteAsync(User user)
+    {
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        
+        await _context.SaveChangesAsync();
+    }
 }

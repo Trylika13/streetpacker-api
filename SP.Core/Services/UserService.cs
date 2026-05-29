@@ -14,114 +14,37 @@ public class UserService : IUserService
 {
     private readonly IConfiguration _config;
     private readonly IUserRepository _userRepository;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
     
-    public UserService(IUserRepository userRepository, IConfiguration config, IRefreshTokenRepository refreshTokenRepository)
+    public UserService(IConfiguration config, IUserRepository userRepository)
     {
-        _userRepository = userRepository;
         _config = config;
-        _refreshTokenRepository = refreshTokenRepository;
+        _userRepository = userRepository;
     }
     
-    public async Task<User> RegisterAsync(User user, string clearPassword)
+    public async Task<User> DeleteUserAsync(Guid userId)
     {
-        var existingUser = await _userRepository.GetByUsernameAsync(user.Username);
-        if (existingUser != null)
-            throw new Exception("User already exists"); 
-
-        // Hasher le mot de passe 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(clearPassword);
+        var user = await _userRepository.GetByIdAsync(userId);
         
-        user.Role = "User"; 
-        
-        return await _userRepository.AddUserAsync(user);
-    }
-
-    public async Task<(string Token, string RefreshToken)?> LoginAsync(string username, string password)
-    {
-        var user = await _userRepository.GetByUsernameAsync(username);
-        if ( user == null) return null;
-
-        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            return null;
-        
-        var jwt =  GenerateJwtToken(user);
-        var refreshTokenEntity = GenerateRefreshToken(user.UserId);
-        
-        await _refreshTokenRepository.AddAsync(refreshTokenEntity);
-        
-        return (jwt, refreshTokenEntity.Token);
-    }
-
-    private string GenerateJwtToken(User user)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        
-        // CLAIMS
-        var claims = new[]
+        if (user == null)
         {
-            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+            throw new Exception("Utilisateur introuvable."); 
+        }
 
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
-            signingCredentials: creds
-        );
-        return new JwtSecurityTokenHandler().WriteToken(token);
-
+        await _userRepository.DeleteAsync(user);
+        
+        return user;
     }
     
-    private RefreshToken GenerateRefreshToken(Guid userId)
+    public async Task<User?> GetByIdAsync(Guid userId)
     {
-        var randomNumber = new byte[64];
-        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-        rng.GetBytes(randomNumber);
-        
-        return new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            Token = Convert.ToBase64String(randomNumber),
-            ExpiresAt = DateTime.UtcNow.AddDays(7), 
-            CreatedAt = DateTime.UtcNow,
-            UserId = userId,
-            IsRevoked = false
-        };
+        // On demande simplement au repository d'aller chercher le user en base de données
+        return await _userRepository.GetByIdAsync(userId);
     }
     
-    public async Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string refreshToken)
+    public async Task<User> UpdateUserAsync(User user)
     {
-        var savedRefreshToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-    
-        if (savedRefreshToken == null) {
-            Console.WriteLine("❌ Token non trouvé en base !");
-            return null;
-        }
-
-        if (savedRefreshToken.IsRevoked) {
-            Console.WriteLine("❌ Token déjà révoqué !");
-            return null;
-        }
-
-        if (savedRefreshToken.User == null) {
-            Console.WriteLine("❌ Utilisateur non chargé ! (Problème d'Include)");
-            return null;
-        }
+        await _userRepository.UpdateAsync(user);
         
-        var newAccessToken = GenerateJwtToken(savedRefreshToken.User!);
-        var newRefreshTokenEntity = GenerateRefreshToken(savedRefreshToken.UserId);
-        
-        savedRefreshToken.IsRevoked = true;
-
-        await _refreshTokenRepository.UpdateAsync(savedRefreshToken);
-        
-        await _refreshTokenRepository.AddAsync(newRefreshTokenEntity);
-        
-        return (newAccessToken, newRefreshTokenEntity.Token);
+        return user;
     }
 }
