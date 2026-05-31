@@ -33,6 +33,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("PasswordHash")
             .IsRequired();
         
+        builder.Property(u => u.AvatarUrl)
+            .HasColumnName("avatar_url");
+
         builder.Property(u => u.Role)
             .HasColumnName("Role")
             .IsRequired()
