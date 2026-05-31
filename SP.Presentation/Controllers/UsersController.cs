@@ -36,7 +36,8 @@ public class UsersController : ControllerBase
         return Ok(new 
         { 
             username = user.Username, 
-            email = user.Email 
+            email = user.Email, 
+            avatarUrl = user.AvatarUrl 
         });
     }
 
@@ -78,6 +79,7 @@ public class UsersController : ControllerBase
         // 3. On applique les modifs
         existingUser.Username = dto.Username;
         existingUser.Email = dto.Email;
+        existingUser.AvatarUrl = dto.AvatarUrl;
 
         // 4. On sauvegarde
         await _userService.UpdateUserAsync(existingUser);

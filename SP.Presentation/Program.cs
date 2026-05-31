@@ -57,6 +57,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISpotService, SpotService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IMediaService, MediaService>();
 
 
 // Repositories
