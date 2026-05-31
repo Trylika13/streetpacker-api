@@ -101,7 +101,8 @@ public class AuthService : IAuthService
             return null;
         }
 
-        if (savedRefreshToken.IsRevoked) {
+        if (!savedRefreshToken.IsActive) {
+            Console.WriteLine("❌ Token invalide (révoqué ou expiré) !");
             Console.WriteLine("❌ Token déjà révoqué !");
             return null;
         }

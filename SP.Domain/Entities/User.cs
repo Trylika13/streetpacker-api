@@ -13,6 +13,7 @@ public class User
     public required string Email { get; set; }
     
     public string? Role { get; set; }
+    public string? AvatarUrl { get; set; }
     
     public List<RefreshToken> RefreshToken { get; set; } = new();
 }

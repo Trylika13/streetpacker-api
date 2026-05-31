@@ -9,4 +9,6 @@ public class CreateSpotDto
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public string? ImageUrl { get; set; }
+    
+    public List<Guid> TagIds { get; set; } = new List<Guid>();
 }
