@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SP.Domain.Entities;
 
-namespace SP.Infrastructure.Configurations;
+namespace SP.Infrastructure.Data.Configurations;
 
 public class SpotConfiguration : IEntityTypeConfiguration<Spot>
 {

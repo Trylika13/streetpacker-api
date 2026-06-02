@@ -8,7 +8,6 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
-        // Nom de la table dans DBeaver
         builder.ToTable("refresh_tokens");
 
         builder.HasKey(rt => rt.Id);
@@ -19,10 +18,8 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.Property(rt => rt.ExpiresAt).HasColumnName("expires");
         builder.Property(rt => rt.IsRevoked).HasColumnName("revoked");
         
-        // Clé étrangère vers Users
         builder.Property(rt => rt.UserId).HasColumnName("user_id");
 
-        // Configuration de la relation (Un utilisateur a plusieurs tokens)
         builder.HasOne(rt => rt.User)
             .WithMany(u => u.RefreshToken)
             .HasForeignKey(rt => rt.UserId)
