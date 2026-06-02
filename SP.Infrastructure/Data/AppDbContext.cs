@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     
     public DbSet<Spot> Spots => Set<Spot>();
+    public DbSet<Tag> Tags => Set<Tag>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

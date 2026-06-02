@@ -50,27 +50,23 @@ public class SpotsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        // 1. Récupération de l'ID utilisateur depuis le Token
+        // Récupération de l'ID utilisateur depuis le Token
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
         var userId = Guid.Parse(userIdClaim.Value);
 
-        // 2. Récupération du spot AVANT la suppression pour vérification
+        // Récupération du spot AVANT la suppression pour vérification
         var spot = await _spotService.GetSpotByIdAsync(id);
     
         if (spot == null) return NotFound("Spot introuvable.");
 
-        // DEBUG : Vérifie bien quelle propriété contient l'ID (UserId ou User_Id ?)
-        Console.WriteLine($"Token UserID: {userId}");
-        Console.WriteLine($"DB Spot UserID: {spot.UserId}"); 
-
-        // 3. Vérification de sécurité : Est-ce le bon proprio ?
+        // Vérification de sécurité : Est-ce le bon user_id ?
         if (spot.UserId != userId) 
         {
-            return StatusCode(403, "C'est pas ton spot, pas touche la mouche t'as jamais pris ta douche");
+            return Forbid();
         }
 
-        // 4. Si c'est le bon, on supprime
+        // Si c'est le bon, on supprime
         var deleted = await _spotService.DeleteSpotAsync(id, userId); 
     
         if (!deleted) return BadRequest("Erreur lors de la suppression.");
@@ -85,23 +81,20 @@ public class SpotsController : ControllerBase
         if (userIdClaim == null) return Unauthorized();
         var userId = Guid.Parse(userIdClaim.Value);
     
-        // 1. On récupère le spot complet de la DB (avec sa lat/long d'origine)
         var existingSpot = await _spotService.GetSpotByIdAsync(id);
         if (existingSpot == null) return NotFound("Spot introuvable.");
 
-        // 2. Sécurité
         if (existingSpot.UserId != userId)
         {
-            return StatusCode(403, "C'est pas ton spot, pas touche la mouche t'as jamais pris ta douche");
+            return Forbid();
         }
 
-        // 3. On change uniquement les champs textuels DIRECTEMENT, sans mappeur
         existingSpot.Title = dto.Title;
         existingSpot.Description = dto.Description;
         existingSpot.ImageUrl = dto.ImageUrl;
         existingSpot.LastVerifiedAt = DateTime.UtcNow;
 
-        // 4. Sauvegarde
+        // Sauvegarde
         await _spotService.UpdateSpotAsync(existingSpot);
 
         return NoContent();
