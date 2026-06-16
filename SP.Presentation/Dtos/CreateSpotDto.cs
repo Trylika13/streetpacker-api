@@ -1,5 +1,3 @@
-using SP.Domain.Entities;
-
 namespace SP.Presentation.Dtos;
 
 public class CreateSpotDto
