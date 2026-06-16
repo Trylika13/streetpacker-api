@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowVueApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "https://streetpacker.vercel.app")
+            policy.WithOrigins("http://localhost:5173", "http://localhost:4173", "https://streetpacker.vercel.app")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -59,12 +59,14 @@ builder.Services.AddScoped<ISpotService, SpotService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IAdService, AdService>();
 
 
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<ISpotRepository, SpotRepository>();
+builder.Services.AddScoped<IAdRepository, AdRepository>();
 
 // 1. Swagger AVEC le cadenas JWT (Syntaxe classique Swashbuckle)
 builder.Services.AddSwaggerGen(c =>

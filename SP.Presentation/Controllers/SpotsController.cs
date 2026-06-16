@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SP.Core.Interfaces.Services;
-using SP.Domain.Entities;
 using SP.Presentation.Dtos;
 using SP.Presentation.Mappers;
 
