@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     
     public DbSet<Spot> Spots => Set<Spot>();
     public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<Ad> Ads => Set<Ad>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

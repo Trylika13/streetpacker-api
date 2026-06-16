@@ -80,6 +80,7 @@ public class UsersController : ControllerBase
         existingUser.Username = dto.Username;
         existingUser.Email = dto.Email;
         existingUser.AvatarUrl = dto.AvatarUrl;
+        existingUser.WhatsAppUrl = dto.WhatsAppUrl;
 
         // 4. On sauvegarde
         await _userService.UpdateUserAsync(existingUser);
