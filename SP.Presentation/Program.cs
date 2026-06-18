@@ -8,6 +8,7 @@ using SP.Core.Interfaces.Services;
 using SP.Core.Services;
 using SP.Infrastructure.Data;
 using SP.Infrastructure.Repositories;
+using SP.Presentation.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<ISpotRepository, SpotRepository>();
 builder.Services.AddScoped<IAdRepository, AdRepository>();
+
+// FreshnessWorker
+// Enregistrement du Worker en arrière-plan
+builder.Services.AddHostedService<FreshnessWorker>();
 
 // 1. Swagger AVEC le cadenas JWT (Syntaxe classique Swashbuckle)
 builder.Services.AddSwaggerGen(c =>
