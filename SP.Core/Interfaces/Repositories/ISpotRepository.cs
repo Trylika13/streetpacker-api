@@ -10,4 +10,7 @@ public interface ISpotRepository
     Task AddAsync(Spot spot);
     Task UpdateAsync(Spot spot);
     Task DeleteAsync(Spot spot);
+    
+    Task<IEnumerable<Spot>> GetFavoriteSpotsByUserIdAsync(Guid userId);
+    Task<bool> ToggleFavoriteSpotAsync(Guid userId, Guid spotId);
 }

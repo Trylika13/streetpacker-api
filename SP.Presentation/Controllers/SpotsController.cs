@@ -117,4 +117,46 @@ public class SpotsController : ControllerBase
         var dtos = spots.Select(SpotMapper.ToDto);
         return Ok(dtos);
     }
+    
+    // GESTION DES FAVORIS
+    
+    [HttpGet("favorites")]
+    public async Task<IActionResult> GetMyFavorites()
+    {
+        // 1. Récupération et validation de l'ID utilisateur depuis le Token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Tu n'es pas connecté.");
+        }
+
+        if (!Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return BadRequest("Format de l'ID utilisateur invalide.");
+        }
+
+        // 2. Récupération des entités via le service
+        var favoriteSpots = await _spotService.GetFavoriteSpotsByUserIdAsync(userId);
+        
+        // 3. Mapping en DTO (On réutilise ton SpotMapper existant)
+        var dtos = favoriteSpots.Select(SpotMapper.ToDto);
+        
+        return Ok(dtos);
+    }
+
+    [HttpPost("{id}/favorite")]
+    public async Task<IActionResult> ToggleFavorite(Guid id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized("Tu n'es pas connecté.");
+        if (!Guid.TryParse(userIdClaim, out Guid userId)) return BadRequest("Format ID invalide.");
+
+        var spot = await _spotService.GetSpotByIdAsync(id);
+        if (spot == null) return NotFound("Spot introuvable.");
+
+        // Récupération directe du Tuple renvoyé par le service
+        var (isFavorite, message) = await _spotService.ToggleFavoriteSpotAsync(userId, id);
+
+        return Ok(new { isFavorite, message });
+    }
 }

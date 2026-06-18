@@ -52,4 +52,21 @@ public class AdService : IAdService
     {
         return await _adRepository.GetAdByUserIdAsync(userId);
     }
+    
+    public async Task<IEnumerable<Ad>> GetFavoriteAdsByUserIdAsync(Guid userId)
+    {
+        return await _adRepository.GetFavoriteAdsByUserIdAsync(userId);
+    }
+
+    public async Task<(bool IsFavorite, string Message)> ToggleFavoriteAdAsync(Guid userId, Guid adId)
+    {
+        var isAdded = await _adRepository.ToggleFavoriteAdAsync(userId, adId);
+
+        if (isAdded)
+        {
+            return (true, "Annonce ajoutée aux favoris.");
+        }
+
+        return (false, "Annonce retirée des favoris.");
+    }
 }    
