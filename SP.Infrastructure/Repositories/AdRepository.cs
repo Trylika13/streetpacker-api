@@ -52,4 +52,37 @@ public class AdRepository : IAdRepository
             .Where(a => a.UserId == userId)
             .ToListAsync();
     }
+    
+    public async Task<IEnumerable<Ad>> GetFavoriteAdsByUserIdAsync(Guid userId)
+    {
+        return await _context.Set<FavoriteAd>()
+            .Where(fa => fa.UserId == userId)
+            .Include(fa => fa.Ad) // Jointure pour charger l'objet Annonce
+            .Select(fa => fa.Ad)
+            .ToListAsync();
+    }
+
+    public async Task<bool> ToggleFavoriteAdAsync(Guid userId, Guid adId)
+    {
+        // On cherche si l'annonce est déjà en favori
+        var existing = await _context.Set<FavoriteAd>()
+            .FirstOrDefaultAsync(fa => fa.UserId == userId && fa.AdId == adId);
+
+        if (existing != null)
+        {
+            _context.Set<FavoriteAd>().Remove(existing);
+            await _context.SaveChangesAsync();
+            return false; // Retiré
+        }
+
+        var newFavorite = new FavoriteAd
+        {
+            UserId = userId,
+            AdId = adId
+        };
+
+        _context.Set<FavoriteAd>().Add(newFavorite);
+        await _context.SaveChangesAsync();
+        return true; // Ajouté
+    }
 }
