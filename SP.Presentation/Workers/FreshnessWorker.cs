@@ -35,8 +35,8 @@ public class FreshnessWorker : BackgroundService
                     // Et on s'assure que le score ne descend jamais en dessous de 0
                     await context.Database.ExecuteSqlRawAsync(
                         @"UPDATE ""Spots"" 
-                          SET ""FreshnessScore"" = GREATER(0, ""FreshnessScore"" - 2) 
-                          WHERE ""LastVerifiedAt"" < NOW() - INTERVAL '1 day'", 
+      SET ""FreshnessScore"" = GREATEST(0::integer, ""FreshnessScore"" - 2) 
+      WHERE ""LastVerifiedAt"" < NOW() - INTERVAL '1 day'", 
                         stoppingToken
                     );
                 }
