@@ -60,6 +60,22 @@ public class SpotService : ISpotService
         return true;
     }
 
+    public async Task<IEnumerable<Spot>> GetFavoriteSpotsByUserIdAsync(Guid userId)
+    {
+        return await _spotRepository.GetFavoriteSpotsByUserIdAsync(userId);    }
+
+    public async Task<(bool IsFavorite, string Message)> ToggleFavoriteSpotAsync(Guid userId, Guid spotId)
+    {
+        // On laisse le repo faire le taf en DB
+        var isAdded = await _spotRepository.ToggleFavoriteSpotAsync(userId, spotId);
+
+        if (isAdded)
+        {
+            return (true, "Spot ajouté aux favoris.");
+        }
+    
+        return (false, "Spot retiré des favoris.");    }
+
     public async Task<IEnumerable<Spot>> GetAllSpotsAsync()
     {
         return await _spotRepository.GetAllAsync();

@@ -10,4 +10,7 @@ public interface IAdService
     Task<Ad?> GetAdByIdAsync(Guid id);
     Task<bool> UpdateAdAsync(Ad ad);
     Task<IEnumerable<Ad>> GetAdsByUserIdAsync(Guid userId);
+    
+    Task<IEnumerable<Ad>> GetFavoriteAdsByUserIdAsync(Guid userId);
+    Task<(bool IsFavorite, string Message)> ToggleFavoriteAdAsync(Guid userId, Guid adId);
 }

@@ -53,4 +53,38 @@ public class SpotRepository : ISpotRepository
       _context.Spots.Remove(spot);
       await _context.SaveChangesAsync();
    }
+
+   public async Task<IEnumerable<Spot>> GetFavoriteSpotsByUserIdAsync(Guid userId)
+   {
+      return await _context.Set<FavoriteSpot>()
+         .Where(fs => fs.UserId == userId)
+         .Include(fs => fs.Spot) // Jointure EF pour charger l'objet Spot
+         .Select(fs => fs.Spot)
+         .ToListAsync();   }
+
+   public async Task<bool> ToggleFavoriteSpotAsync(Guid userId, Guid spotId)
+   {
+      // On cherche si la ligne existe (SpotsId avec un 's' comme sur ton schéma de DB)
+      var existing = await _context.Set<FavoriteSpot>()
+         .FirstOrDefaultAsync(fs => fs.UserId == userId && fs.SpotsId == spotId);
+
+      if (existing != null)
+      {
+         // Si elle existe, on la dégage
+         _context.Set<FavoriteSpot>().Remove(existing);
+         await _context.SaveChangesAsync();
+         return false; // false = retiré
+      }
+
+      // Si elle n'existe pas, on l'ajoute
+      var newFavorite = new FavoriteSpot
+      {
+         UserId = userId,
+         SpotsId = spotId
+      };
+
+      _context.Set<FavoriteSpot>().Add(newFavorite);
+      await _context.SaveChangesAsync();
+      return true; // true = ajouté
+   }   
 }
