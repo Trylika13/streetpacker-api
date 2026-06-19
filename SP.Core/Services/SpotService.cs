@@ -80,4 +80,24 @@ public class SpotService : ISpotService
     {
         return await _spotRepository.GetAllAsync();
     }
+    
+    public async Task<Spot> VoteSpotAsync(Guid spotId, bool isUpvote)
+    {
+        // 1. Récupérer l'entité
+        var spot = await _spotRepository.GetByIdAsync(spotId);
+        if (spot == null) throw new KeyNotFoundException("Spot introuvable");
+
+        // 2. Calcul des points (+25 / -25)
+        int points = isUpvote ? 25 : -25;
+        int newScore = spot.FreshnessScore + points;
+
+        // 3. Sécurité des bornes [0 - 100]
+        spot.FreshnessScore = Math.Clamp(newScore, 0, 100);
+
+        // 4. Persistance
+        await _spotRepository.UpdateAsync(spot);
+
+        // 5. On renvoie l'entité modifiée au contrôleur
+        return spot;
+    }
 }   
