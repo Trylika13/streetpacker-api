@@ -159,4 +159,19 @@ public class SpotsController : ControllerBase
 
         return Ok(new { isFavorite, message });
     }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("admin/{id}")]
+    public async Task<IActionResult> AdminDeleteSpot(Guid id)
+    {
+        // 1. On cherche le spot en base de données
+        var spot = await _spotService.GetSpotByIdAsync(id);
+        if (spot == null) return NotFound();
+    
+        // 2. Pas besoin de vérifier l'UserId ici ! On est Admin, on supprime direct.
+        var deleted = await _spotService.DeleteSpotAsync(id, spot.UserId);
+    
+        if (!deleted) return BadRequest();
+        return NoContent(); // Renvoie un statut 204 si tout s'est bien passé
+    }
 }
