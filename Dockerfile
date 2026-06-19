@@ -16,8 +16,8 @@ RUN dotnet restore
 COPY . ./
 RUN dotnet publish SP.Presentation/SP.Presentation.csproj -c Release -o out
 
-# 2. Étape d'exécution (Runtime)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# 2. Étape d'exécution (Runtime) - 👑 On force l'image spécifique ASP.NET 9 Bookworm
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
 WORKDIR /app
 COPY --from=build-env /app/out .
 
