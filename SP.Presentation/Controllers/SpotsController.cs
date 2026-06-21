@@ -192,5 +192,28 @@ public class SpotsController : ControllerBase
         }).ToList();
     
         return Ok(dtos);
+    
+    [HttpPost("{id}/vote")]
+    public async Task<IActionResult> VoteSpot(Guid id, [FromQuery] bool isUpvote)
+    {
+        try
+        {
+            // 1. On appelle le service qui bosse avec l'entité du Domaine
+            var updatedSpotEntity = await _spotService.VoteSpotAsync(id, isUpvote);
+
+            // 2. 👑 CORRECTIF : Utilisation du mapper statique conforme au reste de ton code
+            var spotDto = SpotMapper.ToDto(updatedSpotEntity);
+
+            // 3. On répond au Front avec le DTO clean
+            return Ok(spotDto);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur interne lors du vote.", error = ex.Message });
+        }
     }
 }

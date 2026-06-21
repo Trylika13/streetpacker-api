@@ -13,4 +13,5 @@ public interface ISpotService
     Task<IEnumerable<Spot>> GetFavoriteSpotsByUserIdAsync(Guid userId);
     Task<(bool IsFavorite, string Message)> ToggleFavoriteSpotAsync(Guid userId, Guid spotId);
     Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type);
+    Task<Spot> VoteSpotAsync(Guid spotId, bool isUpvote);
 }
