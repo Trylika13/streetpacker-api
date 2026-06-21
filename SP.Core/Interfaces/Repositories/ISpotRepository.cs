@@ -13,4 +13,7 @@ public interface ISpotRepository
     
     Task<IEnumerable<Spot>> GetFavoriteSpotsByUserIdAsync(Guid userId);
     Task<bool> ToggleFavoriteSpotAsync(Guid userId, Guid spotId);
+    Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type);
+    Task<List<Tag>> GetTagsByIdsAsync(List<Guid> tagIds);
+    
 }

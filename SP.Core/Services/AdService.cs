@@ -18,9 +18,22 @@ public class AdService : IAdService
         return await _adRepository.GetAllAdsAsync();
     }
 
-    public async Task<(bool success, string errorMessage, Ad? ad)> CreateAdAsync(Ad ad)
+    public async Task<(bool success, string errorMessage, Ad? ad)> CreateAdAsync(Ad ad, List<Guid> tagIds)
     {
+        // 1. 👑 Récupération des tags en DB et liaison automatique
+        if (tagIds != null && tagIds.Any())
+        {
+            var tagsFromDb = await _adRepository.GetTagsByIdsAsync(tagIds);
+        
+            foreach (var tag in tagsFromDb)
+            {
+                ad.Tags.Add(tag); // EF Core va intercepter ça pour remplir "Ad_Tags" tout seul
+            }
+        }
+
+        // 2. Ta méthode de sauvegarde existante
         await _adRepository.CreateAdAsync(ad);
+    
         return (true, "", ad);
     }
 
@@ -68,5 +81,10 @@ public class AdService : IAdService
         }
 
         return (false, "Annonce retirée des favoris.");
+    }
+    public async Task<IEnumerable<Tag>> GetAdTagsAsync()
+    {
+        // On délègue proprement au repository des annonces
+        return await _adRepository.GetTagsByTypeAsync("ad");
     }
 }    

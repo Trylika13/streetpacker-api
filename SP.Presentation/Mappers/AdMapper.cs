@@ -18,6 +18,8 @@ public static class AdMapper
             UserId = entity.UserId,
             LocationArea = entity.LocationArea,
             CreatedAt = entity.created_at,
+            
+            Tags = entity.Tags?.Select(t => t.Name).ToList() ?? new List<string>()
         };
     }
 
@@ -31,6 +33,8 @@ public static class AdMapper
             ContactLink = contactLink, 
             UserId = userId,
             LocationArea = dto.LocationArea,
+            
+            Tags = new List<Tag>()
         };
     }
 }

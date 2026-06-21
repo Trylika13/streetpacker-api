@@ -8,5 +8,6 @@ public class CreateAdDto
     public string LocationArea { get; set; } = string.Empty;
     public string ContactLink { get; set; } = string.Empty;
     
+    public List<Guid> TagIds { get; set; } = new List<Guid>();
     
 }

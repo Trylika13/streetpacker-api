@@ -40,9 +40,19 @@ public class SpotConfiguration : IEntityTypeConfiguration<Spot>
         builder.HasOne(s => s.User)
             .WithMany() 
             .HasForeignKey(s => s.UserId)
-            .OnDelete(DeleteBehavior.Cascade); // Si l'user supprime son compte, on clean ses spots 
+            .OnDelete(DeleteBehavior.Cascade); // Si l'user supprime son compte, on supp ses spots 
 
         // Index pour accélérer la recherche 
         builder.HasIndex(s => new { s.Latitude, s.Longitude });
+        
+        builder.HasMany(s => s.Tags)
+            .WithMany(t => t.Spots)
+            .UsingEntity(
+                "Spot_Tags", 
+                l => l.HasOne(typeof(Tag)).WithMany().HasForeignKey("TagId"), 
+                r => r.HasOne(typeof(Spot)).WithMany().HasForeignKey("SpotId")   
+            );
     }
+    
+    
 }

@@ -25,6 +25,7 @@ public class SpotRepository : ISpotRepository
    {
       return await _context.Spots
          .Include(s => s.User)
+         .Include(s => s.Tags)
          .OrderByDescending(s => s.CreatedAt)
          .ToListAsync();
    }
@@ -87,4 +88,20 @@ public class SpotRepository : ISpotRepository
       await _context.SaveChangesAsync();
       return true; // true = ajouté
    }   
+   public async Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type)
+   {
+      // C'est ICI et uniquement ici qu'on utilise le _context EF Core
+      return await _context.Tags
+         .Where(t => t.Type.ToLower() == type.ToLower())
+         .OrderBy(t => t.Name)
+         .ToListAsync();
+   }
+   public async Task<List<Tag>> GetTagsByIdsAsync(List<Guid> tagIds)
+   {
+      return await _context.Tags
+         .Where(t => tagIds.Contains(t.TagsId))
+         .ToListAsync();
+   }
+   
+   
 }
