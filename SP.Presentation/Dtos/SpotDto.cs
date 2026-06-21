@@ -11,4 +11,6 @@ public class SpotDto
     public int FreshnessScore { get; set; }
     public string Username { get; set; } = string.Empty; // Juste le nom, pas tout l'objet !
     public DateTime CreatedAt { get; set; }
+    
+    public List<string> Tags { get; set; } = new();
 }

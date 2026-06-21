@@ -20,6 +20,9 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
             .IsRequired()
             .HasMaxLength(50);
 
+        builder.Property(t => t.Type)
+            .IsRequired();
+
         builder.Property(t => t.created_at)
             .HasColumnName("created_at")
             .IsRequired()

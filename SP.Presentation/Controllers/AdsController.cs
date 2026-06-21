@@ -36,7 +36,7 @@ public class AdsController :  ControllerBase
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
         Guid userId = Guid.Parse(userIdClaim.Value);
-    
+
         // 1. On va chercher l'utilisateur pour connaître ses infos de contact
         var user = await _userService.GetByIdAsync(userId); 
         if (user == null) return NotFound("Utilisateur introuvable.");
@@ -46,23 +46,25 @@ public class AdsController :  ControllerBase
             ? user.WhatsAppUrl 
             : user.Email;
 
-        // 3. On transforme le DTO en entité
+        // 3. On transforme le DTO en entité (pense à vérifier que ton ToEntity initialise bien "Tags = new List<Tag>()")
         var ad = AdMapper.ToEntity(dto, userId, finalContact);
-    
-        // 🌟 On force le ContactLink avec la donnée fraîchement récupérée
-        // ad.ContactLink = finalContact; 
 
-        // 4. Envoi au service
-        var result = await _adService.CreateAdAsync(ad);
+        // 4. 👑 Envoi au service avec l'entité ET la liste des IDs de tags extraite du DTO
+        var result = await _adService.CreateAdAsync(ad, dto.TagIds);
 
         if (!result.success)
         {
             return BadRequest(result.errorMessage);
         }
-    
-        return Ok(new { message = "Annonce créée avec succès" });
-    }
 
+        // 5. 👑 FIX JSON : On mappe l'entité fraîchement créée en DTO plat
+        // Ça intègre tes tags en chaînes de caractères et ça coupe les boucles infinies
+        var adDto = AdMapper.ToDto(result.ad);
+
+        // 6. On renvoie un statut 201 Created ultra propre avec l'objet pour ton Front
+        return CreatedAtAction(nameof(GetAds), new { id = adDto.AdId }, adDto);
+    }
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAd(Guid id)
     {
@@ -170,6 +172,21 @@ public class AdsController :  ControllerBase
         var (isFavorite, message) = await _adService.ToggleFavoriteAdAsync(userId, id);
 
         return Ok(new { isFavorite, message });
+    }
+    [AllowAnonymous]
+    [HttpGet("tags")] 
+    public async Task<IActionResult> GetMarketplaceTags()
+    {
+        var tags = await _adService.GetAdTagsAsync();
+    
+        // Même chose pour le Souk
+        var dtos = tags.Select(t => new TagDto 
+        { 
+            Id = t.TagsId, 
+            Name = t.Name 
+        }).ToList();
+    
+        return Ok(dtos);
     }
 }
     
