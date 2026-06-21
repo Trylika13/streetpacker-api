@@ -10,23 +10,66 @@ namespace SP.Presentation.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class AdsController :  ControllerBase
+public class AdsController : ControllerBase
 {
     private readonly IAdService _adService;
     private readonly IUserService _userService;
     
-    public AdsController(IAdService adService,  IUserService userService)
-        {
-            _adService = adService;
-            _userService = userService;
-        }
-    
+    public AdsController(IAdService adService, IUserService userService)
+    {
+        _adService = adService;
+        _userService = userService;
+    }
+
+    // ========================================================
+    // TOUTES LES ROUTES FIXES (TEXTUELLES) TOUT EN HAUT
+    // ========================================================
 
     [HttpGet]
     public async Task<IActionResult> GetAds()
     {
         var ads = await _adService.GetAllAdsAsync();
         var dtos = ads.Select(AdMapper.ToDto);
+        return Ok(dtos);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("tags")] 
+    public async Task<IActionResult> GetMarketplaceTags()
+    {
+        var tags = await _adService.GetAdTagsAsync();
+    
+        var dtos = tags.Select(t => new TagDto 
+        { 
+            Id = t.TagsId, 
+            Name = t.Name 
+        }).ToList();
+    
+        return Ok(dtos);
+    }
+    
+    [HttpGet("my-ads")]
+    public async Task<IActionResult> GetMyAds()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        Guid userId = Guid.Parse(userIdClaim.Value);
+
+        var myAds = await _adService.GetAdsByUserIdAsync(userId); 
+        var dtos = myAds.Select(AdMapper.ToDto);
+    
+        return Ok(dtos);
+    }
+    
+    [HttpGet("favorites")]
+    public async Task<IActionResult> GetMyFavorites()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized("Tu n'es pas connecté.");
+        if (!Guid.TryParse(userIdClaim, out Guid userId)) return BadRequest("Format ID invalide.");
+
+        var favoriteAds = await _adService.GetFavoriteAdsByUserIdAsync(userId);
+        var dtos = favoriteAds.Select(AdMapper.ToDto); 
         return Ok(dtos);
     }
 
@@ -37,19 +80,15 @@ public class AdsController :  ControllerBase
         if (userIdClaim == null) return Unauthorized();
         Guid userId = Guid.Parse(userIdClaim.Value);
 
-        // 1. On va chercher l'utilisateur pour connaître ses infos de contact
         var user = await _userService.GetByIdAsync(userId); 
         if (user == null) return NotFound("Utilisateur introuvable.");
 
-        // 2. Choix du canal : WhatsApp si renseigné, sinon Email de secours
         string finalContact = !string.IsNullOrWhiteSpace(user.WhatsAppUrl) 
             ? user.WhatsAppUrl 
             : user.Email;
 
-        // 3. On transforme le DTO en entité (pense à vérifier que ton ToEntity initialise bien "Tags = new List<Tag>()")
         var ad = AdMapper.ToEntity(dto, userId, finalContact);
 
-        // 4. 👑 Envoi au service avec l'entité ET la liste des IDs de tags extraite du DTO
         var result = await _adService.CreateAdAsync(ad, dto.TagIds);
 
         if (!result.success)
@@ -57,13 +96,13 @@ public class AdsController :  ControllerBase
             return BadRequest(result.errorMessage);
         }
 
-        // 5. 👑 FIX JSON : On mappe l'entité fraîchement créée en DTO plat
-        // Ça intègre tes tags en chaînes de caractères et ça coupe les boucles infinies
         var adDto = AdMapper.ToDto(result.ad);
-
-        // 6. On renvoie un statut 201 Created ultra propre avec l'objet pour ton Front
         return CreatedAtAction(nameof(GetAds), new { id = adDto.AdId }, adDto);
     }
+    
+    // ========================================================
+    //  TOUTES LES ROUTES DYNAMIQUES AVEC {id} EN DESSOUS
+    // ========================================================
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAd(Guid id)
@@ -73,18 +112,17 @@ public class AdsController :  ControllerBase
         Guid userId = Guid.Parse(userIdClaim.Value);
 
         var ad = await _adService.GetAdByIdAsync(id);
-            if (ad == null) return  NotFound();
+        if (ad == null) return NotFound();
 
-            if (ad.UserId != userId)
-            {
-                return Forbid();
-            }
+        if (ad.UserId != userId)
+        {
+            return Forbid();
+        }
             
-            var deleted =  await _adService.DeleteAdAsync(userId, id);
+        var deleted = await _adService.DeleteAdAsync(userId, id);
             
-            if (!deleted) return  BadRequest();
-            return NoContent();
-
+        if (!deleted) return BadRequest();
+        return NoContent();
     }
 
     [HttpPut("{id}")]
@@ -105,12 +143,6 @@ public class AdsController :  ControllerBase
             return Forbid();
         }
 
-        if (existingAd.UserId != userId)
-        {
-            return Forbid();
-        }
-
-        // On applique les modifications du DTO sur l'entité existante
         existingAd.Title = dto.Title;
         existingAd.Description = dto.Description;
         existingAd.Price = dto.Price;
@@ -121,42 +153,6 @@ public class AdsController :  ControllerBase
         await _adService.UpdateAdAsync(existingAd);
 
         return NoContent();
-        
-    }
-    
-    [HttpGet("my-ads")]
-    public async Task<IActionResult> GetMyAds()
-    {
-        // 1. Récupération sécurisée du userId via le token JWT
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized();
-        Guid userId = Guid.Parse(userIdClaim.Value);
-
-        // 2. Appel de ton service en lui passant le bon userId
-        // Note : Assure-toi que cette méthode existe dans ton IAdService !
-        var myAds = await _adService.GetAdsByUserIdAsync(userId); 
-    
-        // 3. Mapping propre vers les DTOs
-        var dtos = myAds.Select(AdMapper.ToDto);
-    
-        return Ok(dtos);
-    }
-    
-    
-    // GESTION DES FAVORIS  
-    
-    [HttpGet("favorites")]
-    public async Task<IActionResult> GetMyFavorites()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized("Tu n'es pas connecté.");
-        if (!Guid.TryParse(userIdClaim, out Guid userId)) return BadRequest("Format ID invalide.");
-
-        var favoriteAds = await _adService.GetFavoriteAdsByUserIdAsync(userId);
-        
-        // Utilise ton AdMapper pour renvoyer des DTOs propres au front
-        var dtos = favoriteAds.Select(AdMapper.ToDto); 
-        return Ok(dtos);
     }
 
     [HttpPost("{id}/favorite")]
@@ -166,27 +162,11 @@ public class AdsController :  ControllerBase
         if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized("Tu n'es pas connecté.");
         if (!Guid.TryParse(userIdClaim, out Guid userId)) return BadRequest("Format ID invalide.");
 
-        var ad = await _adService.GetAdByIdAsync(id); // Vérifie si l'annonce existe
+        var ad = await _adService.GetAdByIdAsync(id);
         if (ad == null) return NotFound("Annonce introuvable.");
 
         var (isFavorite, message) = await _adService.ToggleFavoriteAdAsync(userId, id);
 
         return Ok(new { isFavorite, message });
     }
-    [AllowAnonymous]
-    [HttpGet("tags")] 
-    public async Task<IActionResult> GetMarketplaceTags()
-    {
-        var tags = await _adService.GetAdTagsAsync();
-    
-        // Même chose pour le Souk
-        var dtos = tags.Select(t => new TagDto 
-        { 
-            Id = t.TagsId, 
-            Name = t.Name 
-        }).ToList();
-    
-        return Ok(dtos);
-    }
 }
-    

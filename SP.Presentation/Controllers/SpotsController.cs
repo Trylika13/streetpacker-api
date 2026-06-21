@@ -8,7 +8,7 @@ using SP.Presentation.Mappers;
 namespace SP.Presentation.Controllers;
 
 [Authorize]
-[ApiController ]
+[ApiController]
 [Route("api/[controller]")]
 public class SpotsController : ControllerBase
 {
@@ -19,11 +19,68 @@ public class SpotsController : ControllerBase
         _spotService = spotService;
     }
 
+    // ========================================================
+    //  TOUTES LES ROUTES FIXES (TEXTUELS) TOUT EN HAUT
+    // ========================================================
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var spots = await _spotService.GetAllSpotsAsync();
         var dtos = spots.Select(SpotMapper.ToDto);
+        return Ok(dtos);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("tags")] 
+    public async Task<IActionResult> GetTags()
+    {
+        var tags = await _spotService.GetTagsByTypeAsync("spot");
+    
+        var dtos = tags.Select(t => new TagDto 
+        { 
+            Id = t.TagsId, 
+            Name = t.Name 
+        }).ToList();
+    
+        return Ok(dtos);
+    }
+
+    [HttpGet("my-spots")]
+    public async Task<IActionResult> GetMySpots()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Tu n'es pas connecté");
+        }
+
+        if (!Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return BadRequest("Format de l'ID utilisateur invalide dans le token.");
+        }
+        
+        var spots = await _spotService.GetSpotsByUserIdAsync(userId);
+        var dtos = spots.Select(SpotMapper.ToDto);
+        return Ok(dtos);
+    }
+    
+    [HttpGet("favorites")]
+    public async Task<IActionResult> GetMyFavorites()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Tu n'es pas connecté.");
+        }
+
+        if (!Guid.TryParse(userIdClaim, out Guid userId))
+        {
+            return BadRequest("Format de l'ID utilisateur invalide.");
+        }
+
+        var favoriteSpots = await _spotService.GetFavoriteSpotsByUserIdAsync(userId);
+        var dtos = favoriteSpots.Select(SpotMapper.ToDto);
         return Ok(dtos);
     }
 
@@ -34,9 +91,7 @@ public class SpotsController : ControllerBase
         if (userIdClaim == null) return Unauthorized();
     
         var userId = Guid.Parse(userIdClaim.Value);
-    
         var spot = SpotMapper.ToEntity(dto, userId);
-    
         var result = await _spotService.CreateSpotAsync(spot, dto.TagIds);
     
         if (!result.Success)
@@ -44,34 +99,30 @@ public class SpotsController : ControllerBase
             return BadRequest(result.Message);
         }
 
-        // 👑 ICI : On coupe la boucle infinie en transformant l'entité en DTO
         var spotDto = SpotMapper.ToDto(result.Spot);
-
         return CreatedAtAction(nameof(GetAll), new { id = spotDto.Id }, spotDto);
     }
+
+    // ========================================================
+    // TOUTES LES ROUTES DYNAMIQUE AVEC {id} EN DESSOUS
+    // ========================================================
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        // Récupération de l'ID utilisateur depuis le Token
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
         var userId = Guid.Parse(userIdClaim.Value);
 
-        // Récupération du spot AVANT la suppression pour vérification
         var spot = await _spotService.GetSpotByIdAsync(id);
-    
         if (spot == null) return NotFound("Spot introuvable.");
 
-        // Vérification de sécurité : Est-ce le bon user_id ?
         if (spot.UserId != userId) 
         {
             return Forbid();
         }
 
-        // Si c'est le bon, on supprime
         var deleted = await _spotService.DeleteSpotAsync(id, userId); 
-    
         if (!deleted) return BadRequest("Erreur lors de la suppression.");
 
         return NoContent();
@@ -97,55 +148,8 @@ public class SpotsController : ControllerBase
         existingSpot.ImageUrl = dto.ImageUrl;
         existingSpot.LastVerifiedAt = DateTime.UtcNow;
 
-        // Sauvegarde
         await _spotService.UpdateSpotAsync(existingSpot);
-
         return NoContent();
-    }
-
-    [HttpGet("my-spots")]
-    public async Task<IActionResult> GetMySpots()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            return Unauthorized("Tu n'es pas connecté");
-        }
-
-        if (!Guid.TryParse(userIdClaim, out Guid userId))
-        {
-            return BadRequest("Format de l'ID utilisateur invalide dans le token.");
-        }
-        
-        var spots = await _spotService.GetSpotsByUserIdAsync(userId);
-        var dtos = spots.Select(SpotMapper.ToDto);
-        return Ok(dtos);
-    }
-    
-    // GESTION DES FAVORIS
-    
-    [HttpGet("favorites")]
-    public async Task<IActionResult> GetMyFavorites()
-    {
-        // 1. Récupération et validation de l'ID utilisateur depuis le Token
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            return Unauthorized("Tu n'es pas connecté.");
-        }
-
-        if (!Guid.TryParse(userIdClaim, out Guid userId))
-        {
-            return BadRequest("Format de l'ID utilisateur invalide.");
-        }
-
-        // 2. Récupération des entités via le service
-        var favoriteSpots = await _spotService.GetFavoriteSpotsByUserIdAsync(userId);
-        
-        // 3. Mapping en DTO (On réutilise ton SpotMapper existant)
-        var dtos = favoriteSpots.Select(SpotMapper.ToDto);
-        
-        return Ok(dtos);
     }
 
     [HttpPost("{id}/favorite")]
@@ -158,9 +162,7 @@ public class SpotsController : ControllerBase
         var spot = await _spotService.GetSpotByIdAsync(id);
         if (spot == null) return NotFound("Spot introuvable.");
 
-        // Récupération directe du Tuple renvoyé par le service
         var (isFavorite, message) = await _spotService.ToggleFavoriteSpotAsync(userId, id);
-
         return Ok(new { isFavorite, message });
     }
     
@@ -168,29 +170,12 @@ public class SpotsController : ControllerBase
     [HttpDelete("admin/{id}")]
     public async Task<IActionResult> AdminDeleteSpot(Guid id)
     {
-        // 1. On cherche le spot en base de données
         var spot = await _spotService.GetSpotByIdAsync(id);
         if (spot == null) return NotFound();
     
-        // 2. Pas besoin de vérifier l'UserId ici ! On est Admin, on supprime direct.
         var deleted = await _spotService.DeleteSpotAsync(id, spot.UserId);
     
         if (!deleted) return BadRequest();
-        return NoContent(); // Renvoie un statut 204 si tout s'est bien passé
-    }
-    [AllowAnonymous]
-    [HttpGet("tags")] // Route: /api/spots/tags[cite: 2]
-    public async Task<IActionResult> GetTags()
-    {
-        var tags = await _spotService.GetTagsByTypeAsync("spot");
-    
-        // Mapping propre et fortement typé
-        var dtos = tags.Select(t => new TagDto 
-        { 
-            Id = t.TagsId, 
-            Name = t.Name 
-        }).ToList();
-    
-        return Ok(dtos);
+        return NoContent(); 
     }
 }
