@@ -15,9 +15,10 @@ public static class SpotMapper
             Latitude = dto.Latitude,
             Longitude = dto.Longitude,
             ImageUrl = dto.ImageUrl,
-            
             CreatedAt = DateTime.UtcNow,
             LastVerifiedAt = DateTime.UtcNow,
+        
+            Tags = new List<Tag>() 
         };
     }
     
@@ -33,7 +34,9 @@ public static class SpotMapper
             ImageUrl = entity.ImageUrl,
             FreshnessScore = (int)entity.FreshnessScore,
             Username = entity.User?.Username ?? "Anonyme", // On récupère juste le pseudo
-            CreatedAt = entity.CreatedAt
+            CreatedAt = entity.CreatedAt,
+            
+            Tags = entity.Tags?.Select(t => t.Name).ToList() ?? new List<string>()
         };
     }
     

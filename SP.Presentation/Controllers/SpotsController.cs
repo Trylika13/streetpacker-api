@@ -32,18 +32,22 @@ public class SpotsController : ControllerBase
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
-        
+    
         var userId = Guid.Parse(userIdClaim.Value);
-        
+    
         var spot = SpotMapper.ToEntity(dto, userId);
-        
-        var result = await _spotService.CreateSpotAsync(spot);
-        
+    
+        var result = await _spotService.CreateSpotAsync(spot, dto.TagIds);
+    
         if (!result.Success)
         {
             return BadRequest(result.Message);
         }
-        return CreatedAtAction(nameof(GetAll), new { id = result.Spot?.Id }, result.Spot);
+
+        // 👑 ICI : On coupe la boucle infinie en transformant l'entité en DTO
+        var spotDto = SpotMapper.ToDto(result.Spot);
+
+        return CreatedAtAction(nameof(GetAll), new { id = spotDto.Id }, spotDto);
     }
 
     [HttpDelete("{id}")]
@@ -173,5 +177,20 @@ public class SpotsController : ControllerBase
     
         if (!deleted) return BadRequest();
         return NoContent(); // Renvoie un statut 204 si tout s'est bien passé
+    }
+    [AllowAnonymous]
+    [HttpGet("tags")] // Route: /api/spots/tags[cite: 2]
+    public async Task<IActionResult> GetTags()
+    {
+        var tags = await _spotService.GetTagsByTypeAsync("spot");
+    
+        // Mapping propre et fortement typé
+        var dtos = tags.Select(t => new TagDto 
+        { 
+            Id = t.TagsId, 
+            Name = t.Name 
+        }).ToList();
+    
+        return Ok(dtos);
     }
 }

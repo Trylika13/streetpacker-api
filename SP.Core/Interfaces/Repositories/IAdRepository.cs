@@ -13,6 +13,9 @@ public interface IAdRepository
     
     Task<IEnumerable<Ad>> GetFavoriteAdsByUserIdAsync(Guid userId);
     Task<bool> ToggleFavoriteAdAsync(Guid userId, Guid adId);
+    Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type);
+    Task<List<Tag>> GetTagsByIdsAsync(List<Guid> tagIds);
+    
     
     
 }

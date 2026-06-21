@@ -17,6 +17,7 @@ public class AdRepository : IAdRepository
     public async Task<IEnumerable<Ad>> GetAllAdsAsync()
     {
         return await _context.Ads
+            .Include(a => a.Tags)
             .Include(a => a.User) // Si tu as configuré la relation de navigation dans ton entité
             .ToListAsync();
     }
@@ -84,5 +85,19 @@ public class AdRepository : IAdRepository
         _context.Set<FavoriteAd>().Add(newFavorite);
         await _context.SaveChangesAsync();
         return true; // Ajouté
+    }
+    public async Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type)
+    {
+        // C'est ici, dans la couche Infrastructure, qu'on interroge le DbContext EF Core
+        return await _context.Tags
+            .Where(t => t.Type.ToLower() == type.ToLower())
+            .OrderBy(t => t.Name)
+            .ToListAsync();
+    }
+    public async Task<List<Tag>> GetTagsByIdsAsync(List<Guid> tagIds)
+    {
+        return await _context.Tags
+            .Where(t => tagIds.Contains(t.TagsId))
+            .ToListAsync();
     }
 }
