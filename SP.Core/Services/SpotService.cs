@@ -97,11 +97,13 @@ public class SpotService : ISpotService
     {
         return await _spotRepository.GetAllAsync();
     }
+
     public async Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type)
     {
         // On passe le relais au repository
         return await _spotRepository.GetTagsByTypeAsync(type);
-    
+    }
+
     public async Task<Spot> VoteSpotAsync(Guid spotId, bool isUpvote)
     {
         // 1. Récupérer l'entité
