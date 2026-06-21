@@ -22,7 +22,7 @@ public class AdsController : ControllerBase
     }
 
     // ========================================================
-    // TOUTES LES ROUTES FIXES (TEXTUELLES) TOUT EN HAUT
+    //  TOUTES LES ROUTES FIXES (TEXTUELLES) TOUT EN HAUT
     // ========================================================
 
     [HttpGet]
@@ -101,7 +101,7 @@ public class AdsController : ControllerBase
     }
     
     // ========================================================
-    //  TOUTES LES ROUTES DYNAMIQUES AVEC {id} EN DESSOUS
+    // TOUTES LES ROUTES DYNAMIQUES AVEC {id} EN DESSOUS
     // ========================================================
     
     [HttpDelete("{id}")]
