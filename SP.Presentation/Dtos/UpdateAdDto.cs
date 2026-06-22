@@ -12,5 +12,7 @@ public class UpdateAdDto
     
     public string ContactLink { get; set; } = string.Empty;
     
+    public string? ImageUrl { get; set; }
+    
     public bool IsActive { get; set; }
 }

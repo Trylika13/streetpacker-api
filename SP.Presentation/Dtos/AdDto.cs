@@ -13,6 +13,7 @@ public class AdDto
     public string ContactLink { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? ImageUrl { get; set; }
     
     public List<string> Tags { get; set; } = new List<string>();
     
