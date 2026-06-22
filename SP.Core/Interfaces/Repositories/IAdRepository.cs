@@ -4,7 +4,7 @@ namespace SP.Core.Interfaces.Repositories;
 
 public interface IAdRepository
 {
-    Task<IEnumerable<Ad>> GetAllAdsAsync();
+    Task<IEnumerable<Ad>> GetAllAdsAsync(int page, int pageSize);
     Task CreateAdAsync(Ad ad);
     Task DeleteAdAsync (Ad ad);
     Task<Ad?> GetAdByIdAsync(Guid id);

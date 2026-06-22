@@ -9,8 +9,10 @@ public class SpotDto
     public double Longitude { get; set; }
     public string? ImageUrl { get; set; }
     public int FreshnessScore { get; set; }
-    public string Username { get; set; } = string.Empty; // Juste le nom, pas tout l'objet !
+    public string Username { get; set; } = string.Empty; 
     public DateTime CreatedAt { get; set; }
     
     public List<string> Tags { get; set; } = new();
+    
+    public UserPublicProfileDto? User { get; set; }
 }

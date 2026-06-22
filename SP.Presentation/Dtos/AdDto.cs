@@ -1,3 +1,5 @@
+using SP.Domain.Entities;
+
 namespace SP.Presentation.Dtos;
 
 public class AdDto
@@ -12,4 +14,9 @@ public class AdDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     
-    public List<string> Tags { get; set; } = new List<string>();}
+    public List<string> Tags { get; set; } = new List<string>();
+    
+    public UserPublicProfileDto? User { get; set; }
+
+}
+    

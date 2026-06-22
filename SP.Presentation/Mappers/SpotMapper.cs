@@ -33,7 +33,7 @@ public static class SpotMapper
             Longitude = entity.Longitude,
             ImageUrl = entity.ImageUrl,
             FreshnessScore = (int)entity.FreshnessScore,
-            Username = entity.User?.Username ?? "Anonyme", // On récupère juste le pseudo
+            Username = entity.User?.Username ?? "Anonyme", 
             CreatedAt = entity.CreatedAt,
             
             Tags = entity.Tags?.Select(t => t.Name).ToList() ?? new List<string>()

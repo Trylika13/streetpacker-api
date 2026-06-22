@@ -14,9 +14,12 @@ public class AdRepository : IAdRepository
       _context = context;
     }
 
-    public async Task<IEnumerable<Ad>> GetAllAdsAsync()
+    public async Task<IEnumerable<Ad>> GetAllAdsAsync(int page,  int pageSize)
     {
         return await _context.Ads
+            .OrderByDescending(a=>a.created_at)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Include(a => a.Tags)
             .Include(a => a.User) // Si tu as configuré la relation de navigation dans ton entité
             .ToListAsync();
