@@ -18,6 +18,7 @@ public static class AdMapper
             UserId = entity.UserId,
             LocationArea = entity.LocationArea,
             CreatedAt = entity.created_at,
+            ImageUrl = entity.ImageUrl,
             Tags = entity.Tags?.Select(t => t.Name).ToList() ?? new List<string>(),
 
             User = entity.User != null ? new UserPublicProfileDto
@@ -39,6 +40,7 @@ public static class AdMapper
             ContactLink = contactLink, 
             UserId = userId,
             LocationArea = dto.LocationArea,
+            ImageUrl =  dto.ImageUrl,
             Tags = new List<Tag>()
         };
     }

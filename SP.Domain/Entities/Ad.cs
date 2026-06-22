@@ -13,6 +13,8 @@ public class Ad
     public string ContactLink { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public DateTime created_at { get; set; } = DateTime.UtcNow;
+    public string? ImageUrl { get; set; }
+    
     public User User { get; set; } = null!;
     
     public List<Tag> Tags { get; set; } = new List<Tag>();

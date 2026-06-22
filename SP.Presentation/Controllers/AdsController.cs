@@ -170,6 +170,7 @@ public class AdsController : ControllerBase
         existingAd.LocationArea = dto.LocationArea;
         existingAd.ContactLink = dto.ContactLink;
         existingAd.IsActive = dto.IsActive;
+        existingAd.ImageUrl = dto.ImageUrl;
         
         await _adService.UpdateAdAsync(existingAd);
 

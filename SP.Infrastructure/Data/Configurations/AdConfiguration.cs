@@ -8,10 +8,8 @@ public class AdConfiguration : IEntityTypeConfiguration<Ad>
 {
     public void Configure(EntityTypeBuilder<Ad> builder)
     {
-        // 👑 Ta clé primaire de base (ajuste le nom si c'est Id ou AdId)
         builder.HasKey(a => a.AdId); 
 
-        // 👑 La configuration de la table pivot Many-to-Many pour les annonces
         builder.HasMany(a => a.Tags)
             .WithMany(t => t.Ads)
             .UsingEntity(
