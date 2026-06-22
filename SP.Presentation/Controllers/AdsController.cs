@@ -26,13 +26,34 @@ public class AdsController : ControllerBase
     // ========================================================
 
     [HttpGet]
-    public async Task<IActionResult> GetAds()
+    public async Task<IActionResult> GetAds([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
     {
-        var ads = await _adService.GetAllAdsAsync();
+        // Sécurité de base
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 12;
+
+        // On passe les paramètres au service
+        var ads = await _adService.GetAllAdsAsync(page, pageSize);
+    
         var dtos = ads.Select(AdMapper.ToDto);
         return Ok(dtos);
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var ad = await _adService.GetAdByIdAsync(id);
+    
+        if (ad == null)
+        {
+            return NotFound(new { message = "Cette annonce n'est plus disponible." });
+        }
+
+        var dto = AdMapper.ToDto(ad);
+
+        return Ok(dto); 
+    }
+    
     [AllowAnonymous]
     [HttpGet("tags")] 
     public async Task<IActionResult> GetMarketplaceTags()
