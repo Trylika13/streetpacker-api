@@ -4,7 +4,7 @@ namespace SP.Core.Interfaces.Services;
 
 public interface IAdService
 {
-    Task<IEnumerable<Ad>> GetAllAdsAsync();
+    Task<IEnumerable<Ad>> GetAllAdsAsync(int page, int pageSize);
     Task<(bool success, string errorMessage, Ad? ad)> CreateAdAsync(Ad ad, List<Guid> tagIds);    Task<bool> DeleteAdAsync(Guid userId, Guid id);
     Task<Ad?> GetAdByIdAsync(Guid id);
     Task<bool> UpdateAdAsync(Ad ad);

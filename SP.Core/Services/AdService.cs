@@ -13,9 +13,9 @@ public class AdService : IAdService
         _adRepository = adRepository;
     }
 
-    public async Task<IEnumerable<Ad>> GetAllAdsAsync()
+    public async Task<IEnumerable<Ad>> GetAllAdsAsync(int page, int pageSize)
     {
-        return await _adRepository.GetAllAdsAsync();
+        return await _adRepository.GetAllAdsAsync(page, pageSize);
     }
 
     public async Task<(bool success, string errorMessage, Ad? ad)> CreateAdAsync(Ad ad, List<Guid> tagIds)

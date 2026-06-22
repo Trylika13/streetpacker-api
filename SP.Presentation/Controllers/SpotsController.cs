@@ -30,6 +30,21 @@ public class SpotsController : ControllerBase
         var dtos = spots.Select(SpotMapper.ToDto);
         return Ok(dtos);
     }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var spot = await _spotService.GetSpotByIdAsync(id);
+    
+        if (spot == null)
+        {
+            return NotFound(new { message = "Ce spot n'existe pas ou a été supprimé." });
+        }
+
+        var dto = SpotMapper.ToDto(spot);
+
+        return Ok(dto);
+    }
 
     [AllowAnonymous]
     [HttpGet("tags")] 
