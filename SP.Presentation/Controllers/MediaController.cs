@@ -14,8 +14,9 @@ public class MediaController : ControllerBase
     {
         _mediaService = mediaService;
     }
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("upload")]
+    [DisableRequestSizeLimit]
     public async Task<IActionResult> UploadImage(IFormFile file)
     {
         if (file == null || file.Length == 0)
