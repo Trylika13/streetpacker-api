@@ -65,7 +65,7 @@ public class SpotRepository : ISpotRepository
 
    public async Task<bool> ToggleFavoriteSpotAsync(Guid userId, Guid spotId)
    {
-      // On cherche si la ligne existe (SpotsId avec un 's' comme sur ton schéma de DB)
+      // On cherche si la ligne existe 
       var existing = await _context.Set<FavoriteSpot>()
          .FirstOrDefaultAsync(fs => fs.UserId == userId && fs.SpotsId == spotId);
 
@@ -90,7 +90,6 @@ public class SpotRepository : ISpotRepository
    }   
    public async Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type)
    {
-      // C'est ICI et uniquement ici qu'on utilise le _context EF Core
       return await _context.Tags
          .Where(t => t.Type.ToLower() == type.ToLower())
          .OrderBy(t => t.Name)

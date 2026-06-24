@@ -27,7 +27,6 @@ public class UsersController : ControllerBase
 
         var userId = Guid.Parse(userIdClaim);
         
-        // ⚠️ Assure-toi d'avoir cette méthode GetByIdAsync ou GetUserByIdAsync dans ton IUserService / UserRepository
         var user = await _userService.GetByIdAsync(userId); 
         
         if (user == null)
@@ -67,22 +66,22 @@ public class UsersController : ControllerBase
     [HttpPut("update")]
     public async Task<IActionResult> UpdateProfile(UpdateUserDto dto)
     {
-        // 1. Récupération de l'ID via le token
+        // Récupération de l'ID via le token
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
         var userId = Guid.Parse(userIdClaim.Value);
 
-        // 2. On chope le user en base
+        // On chope le user en base
         var existingUser = await _userService.GetByIdAsync(userId);
         if (existingUser == null) return NotFound("Utilisateur introuvable.");
 
-        // 3. On applique les modifs
+        // On applique les modifs
         existingUser.Username = dto.Username;
         existingUser.Email = dto.Email;
         existingUser.AvatarUrl = dto.AvatarUrl;
         existingUser.WhatsAppUrl = dto.WhatsAppUrl;
 
-        // 4. On sauvegarde
+        // On sauvegarde
         await _userService.UpdateUserAsync(existingUser);
 
         return Ok(new { message = "Profil mis à jour avec succès." });

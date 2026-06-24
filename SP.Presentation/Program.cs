@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; 
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features; 
 using SP.Core.Interfaces.Repositories;
 using SP.Core.Interfaces.Services;
 using SP.Core.Services;
@@ -12,10 +13,16 @@ using SP.Presentation.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.WebHost.ConfigureKestrel(serverOptions =>
-// {
-//     serverOptions.ListenAnyIP(5127); 
-// });
+// CONFIGURATION DES LOGS POUR VOIR LES ERREURS CORS S'IL Y EN A
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = 52428800; 
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
 
 builder.Services.AddCors(options =>
 {
@@ -24,7 +31,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:5173", "http://localhost:4173", "https://streetpacker.vercel.app")
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .AllowCredentials(); 
         });
 });
 
@@ -47,12 +55,10 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
 // Services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -62,7 +68,6 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IAdService, AdService>();
 
-
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -70,10 +75,9 @@ builder.Services.AddScoped<ISpotRepository, SpotRepository>();
 builder.Services.AddScoped<IAdRepository, AdRepository>();
 
 // FreshnessWorker
-// Enregistrement du Worker en arrière-plan
 builder.Services.AddHostedService<FreshnessWorker>();
 
-// 1. Swagger AVEC le cadenas JWT (Syntaxe classique Swashbuckle)
+// Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "StreetPacker API", Version = "v1" });
@@ -86,7 +90,6 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
-
     
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -104,19 +107,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-
 var app = builder.Build();
 
 app.UseCors("AllowVueApp");
 
+app.UseHttpsRedirection();
+
 app.UseSwagger();
 app.UseSwaggerUI();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
 
 app.UseAuthentication();
 app.UseAuthorization();

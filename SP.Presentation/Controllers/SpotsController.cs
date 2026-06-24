@@ -198,13 +198,10 @@ public class SpotsController : ControllerBase
     {
         try
         {
-            // 1. On appelle le service qui bosse avec l'entité du Domaine
             var updatedSpotEntity = await _spotService.VoteSpotAsync(id, isUpvote);
 
-            // 2. 👑 CORRECTIF : Utilisation du mapper statique conforme au reste de ton code
             var spotDto = SpotMapper.ToDto(updatedSpotEntity);
 
-            // 3. On répond au Front avec le DTO clean
             return Ok(spotDto);
         }
         catch (KeyNotFoundException ex)

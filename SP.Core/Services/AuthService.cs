@@ -97,18 +97,18 @@ public class AuthService : IAuthService
         var savedRefreshToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
     
         if (savedRefreshToken == null) {
-            Console.WriteLine("❌ Token non trouvé en base !");
+            Console.WriteLine("Token non trouvé en base !");
             return null;
         }
 
         if (!savedRefreshToken.IsActive) {
-            Console.WriteLine("❌ Token invalide (révoqué ou expiré) !");
-            Console.WriteLine("❌ Token déjà révoqué !");
+            Console.WriteLine("Token invalide (révoqué ou expiré) !");
+            Console.WriteLine("Token déjà révoqué !");
             return null;
         }
 
         if (savedRefreshToken.User == null) {
-            Console.WriteLine("❌ Utilisateur non chargé ! (Problème d'Include)");
+            Console.WriteLine("Utilisateur non chargé ! (Problème d'Include)");
             return null;
         }
         
