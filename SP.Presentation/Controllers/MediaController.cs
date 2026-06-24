@@ -4,7 +4,6 @@ using SP.Core.Interfaces.Services;
 
 namespace SP.Presentation.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class MediaController : ControllerBase
@@ -15,7 +14,7 @@ public class MediaController : ControllerBase
     {
         _mediaService = mediaService;
     }
-
+    [Authorize]
     [HttpPost("upload")]
     public async Task<IActionResult> UploadImage(IFormFile file)
     {
