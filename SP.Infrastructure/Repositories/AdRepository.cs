@@ -21,7 +21,7 @@ public class AdRepository : IAdRepository
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Include(a => a.Tags)
-            .Include(a => a.User) // Si tu as configuré la relation de navigation dans ton entité
+            .Include(a => a.User) 
             .ToListAsync();
     }
 
@@ -76,7 +76,7 @@ public class AdRepository : IAdRepository
         {
             _context.Set<FavoriteAd>().Remove(existing);
             await _context.SaveChangesAsync();
-            return false; // Retiré
+            return false; 
         }
 
         var newFavorite = new FavoriteAd
@@ -87,11 +87,10 @@ public class AdRepository : IAdRepository
 
         _context.Set<FavoriteAd>().Add(newFavorite);
         await _context.SaveChangesAsync();
-        return true; // Ajouté
+        return true; 
     }
     public async Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type)
     {
-        // C'est ici, dans la couche Infrastructure, qu'on interroge le DbContext EF Core
         return await _context.Tags
             .Where(t => t.Type.ToLower() == type.ToLower())
             .OrderBy(t => t.Name)

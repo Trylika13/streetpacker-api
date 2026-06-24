@@ -20,7 +20,6 @@ public class AdService : IAdService
 
     public async Task<(bool success, string errorMessage, Ad? ad)> CreateAdAsync(Ad ad, List<Guid> tagIds)
     {
-        // 1. 👑 Récupération des tags en DB et liaison automatique
         if (tagIds != null && tagIds.Any())
         {
             var tagsFromDb = await _adRepository.GetTagsByIdsAsync(tagIds);
@@ -31,7 +30,6 @@ public class AdService : IAdService
             }
         }
 
-        // 2. Ta méthode de sauvegarde existante
         await _adRepository.CreateAdAsync(ad);
     
         return (true, "", ad);
@@ -84,7 +82,6 @@ public class AdService : IAdService
     }
     public async Task<IEnumerable<Tag>> GetAdTagsAsync()
     {
-        // On délègue proprement au repository des annonces
         return await _adRepository.GetTagsByTypeAsync("ad");
     }
 }    

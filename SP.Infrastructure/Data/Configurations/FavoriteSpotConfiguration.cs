@@ -8,17 +8,17 @@ public class FavoriteSpotConfiguration : IEntityTypeConfiguration<FavoriteSpot>
 {
     public void Configure(EntityTypeBuilder<FavoriteSpot> builder)
     {
-        // 1. Nom de la table pivot en DB
+        //  Nom de la table pivot en DB
         builder.ToTable("FavoriteSpots");
 
-        // 2. Clé primaire composite (UserId + SpotId)
+        // Clé primaire composite (UserId + SpotId)
         builder.HasKey(fs => new { fs.UserId, fs.SpotsId });
 
-        // 3. Configuration des relations (Clés étrangères)
+        //  Configuration des relations (Clés étrangères)
         builder.HasOne(fs => fs.User)
-            .WithMany() // Ou .WithMany(u => u.FavoriteSpots) si tu ajoutes la collection dans ton entité User
+            .WithMany() 
             .HasForeignKey(fs => fs.UserId)
-            .OnDelete(DeleteBehavior.Cascade); // Si l'utilisateur est supprimé, on vire ses favoris
+            .OnDelete(DeleteBehavior.Cascade); 
 
         builder.HasOne(fs => fs.Spot)
             .WithMany()

@@ -25,7 +25,6 @@ public class SpotService : ISpotService
 
     public async Task<(bool Success, string Message, Spot? Spot)> CreateSpotAsync(Spot spot, List<Guid> tagIds)
     {
-        // 1. Ta logique de restriction existante (Maximum 5 par jour)
         var userSpots = await _spotRepository.GetByUserIdAsync(spot.UserId);
         var spotsToday = userSpots.Count(s => s.CreatedAt.Date == DateTime.UtcNow.Date);
 
@@ -37,21 +36,17 @@ public class SpotService : ISpotService
         spot.FreshnessScore = 100;
         spot.LastVerifiedAt = DateTime.UtcNow;
 
-        // 2. Récupération des entités Tags et liaison à la collection de navigation
         if (tagIds != null && tagIds.Any())
         {
-            // On appelle la méthode du repo qu'on a créée ensemble juste avant
             var tagsFromDb = await _spotRepository.GetTagsByIdsAsync(tagIds);
         
             foreach (var tag in tagsFromDb)
             {
-                // On push le tag dans la liste. EF Core va intercepter ça 
-                // et insérer une ligne dans "Spot_Tags" tout seul au moment du AddAsync
+                
                 spot.Tags.Add(tag); 
             }
         }
     
-        // 3. Persistance en base de données via ton repository
         await _spotRepository.AddAsync(spot);
     
         return (true, "Spot créé avec succès!", spot);
@@ -100,27 +95,21 @@ public class SpotService : ISpotService
 
     public async Task<IEnumerable<Tag>> GetTagsByTypeAsync(string type)
     {
-        // On passe le relais au repository
         return await _spotRepository.GetTagsByTypeAsync(type);
     }
 
     public async Task<Spot> VoteSpotAsync(Guid spotId, bool isUpvote)
     {
-        // 1. Récupérer l'entité
         var spot = await _spotRepository.GetByIdAsync(spotId);
         if (spot == null) throw new KeyNotFoundException("Spot introuvable");
 
-        // 2. Calcul des points (+25 / -25)
         int points = isUpvote ? 25 : -25;
         int newScore = spot.FreshnessScore + points;
 
-        // 3. Sécurité des bornes [0 - 100]
         spot.FreshnessScore = Math.Clamp(newScore, 0, 100);
 
-        // 4. Persistance
         await _spotRepository.UpdateAsync(spot);
 
-        // 5. On renvoie l'entité modifiée au contrôleur
         return spot;
     }
 }   
