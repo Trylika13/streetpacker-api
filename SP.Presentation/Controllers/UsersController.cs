@@ -63,7 +63,7 @@ public class UsersController : ControllerBase
     }
     
     [Authorize]
-    [HttpPut("update")]
+    [HttpPut("me")]
     public async Task<IActionResult> UpdateProfile(UpdateUserDto dto)
     {
         // Récupération de l'ID via le token
