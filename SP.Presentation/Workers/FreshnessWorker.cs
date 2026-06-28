@@ -18,7 +18,6 @@ public class FreshnessWorker : BackgroundService
     {
         _logger.LogInformation("Le Worker de fraîcheur des spots a démarré !");
 
-        // Tant que l'application tourne sur Azure...
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -30,7 +29,7 @@ public class FreshnessWorker : BackgroundService
                 {
                     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                    // 🧙‍♂️ LA MAGIE : Une seule requête SQL brute ultra rapide
+                    //Une seule requête SQL brute ultra rapide
                     // On retire 2 points à tous les spots dont la dernière interaction date d'au moins 1 jour
                     // Et on s'assure que le score ne descend jamais en dessous de 0
                     await context.Database.ExecuteSqlRawAsync(
@@ -46,7 +45,7 @@ public class FreshnessWorker : BackgroundService
                 _logger.LogError(ex, "Erreur lors de la mise à jour de la fraîcheur des spots.");
             }
 
-            // ⏰ Temps d'attente : Le worker s'endort pendant 24 heures avant de recommencer
+            // Le worker s'endort pendant 24 heures avant de recommencer
             await Task.Delay(TimeSpan.FromDays(1), stoppingToken);
         }
     }

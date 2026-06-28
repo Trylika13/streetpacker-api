@@ -107,6 +107,7 @@ public class SpotService : ISpotService
         int newScore = spot.FreshnessScore + points;
 
         spot.FreshnessScore = Math.Clamp(newScore, 0, 100);
+        spot.LastVerifiedAt = DateTime.UtcNow;
 
         await _spotRepository.UpdateAsync(spot);
 
